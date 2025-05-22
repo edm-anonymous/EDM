@@ -71,16 +71,16 @@ Each line shows the arguments changed to disable a specific model component or m
 --graph_type='ECG'
 # Table 4 (iii) w/o ECGNN
 --graph_type='EIG'
-# Appendix Table 5 (i) Modality Combinations
+# Appendix Table 4 (i) Modality Combinations
 Remove --multi_modal
 --modals='l' --direcred_edge='l' or --modals='a' --direcred_edge='a' or --modals='v' --direcred_edge='v'
 Do not remove --multi_modal
 --modals='la' --direcred_edge='la' or --modals='lv' --direcred_edge='lv' or --modals='av' --direcred_edge='av'
-# Appendix Table 5 (ii) w/o Speaker Embedding
+# Appendix Table 4 (ii) w/o Speaker Embedding
 --use_speaker=''
-# Appendix Table 6 (i) Intra-Utterance Directed Edge
+# Appendix Table 5 (i) Intra-Utterance Directed Edge
 --directed_edge='' or --directed_edge='l' or --directed_edge='a' or --directed_edge='v' or --directed_edge='la' or --directed_edge='lv' or --directed_edge='av'
-# Appendix Table 6 (ii) Replace Undirected Multi-edge with Single-edge
+# Appendix Table 5 (ii) Replace Undirected Multi-edge with Single-edge
 --single_edge='intra' or --single_edge='inter'
 ```
 
@@ -113,7 +113,7 @@ python tsne_MELD.py
 # Appendix: Effect of modeling emotional inertia
 python Inertia_IEMOCAP.py
 python Inertia_MELD.py
-# Appendix Table 6: FLOP, Memory, and Inference Time
+# Appendix Table 7, 8: FLOP, Memory, and Inference Time
 --testing --overhead
 ``` 
 
