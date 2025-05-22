@@ -8,8 +8,6 @@
 - torch-geometric 1.7.2
 - fvcore, thop, torchinfo
 
----
-
 ## 📁 Datasets
 The pre-extracted multimodal features (text, audio, visual) used in this project are adopted from the [M3Net](https://github.com/feiyuchen7/M3NET) project(Chen et al., CVPR 2023). Download multimodal features:
 - [IEMOCAP](https://drive.google.com/drive/folders/1s5S1Ku679nlVZQPEfq-6LXgoN1K6Tzmz?usp=drive_link) → Place into the `IEMOCAP_features/` folder  
@@ -19,7 +17,6 @@ The pre-extracted multimodal features (text, audio, visual) used in this project
 Download raw datasets(Optional):
 - [IEMOCAP](https://sail.usc.edu/iemocap/)
 - [MELD](https://github.com/SenticNet/MELD)
----
 
 ## 🏋️‍♀️ Training
 
@@ -32,7 +29,6 @@ python -u train.py --base-model 'GRU' --dropout 0.5 --lr 0.0001 --batch-size=32 
 ```bash
 python -u train.py --base-model 'GRU' --dropout=0.4 --lr=0.0001 --batch-size 32 --epochs=6 --multi_modal --mm_fusion_mthd='concat_DHT' --modals='avl' --Dataset='MELD' --norm BN --num_L=1 --num_K=1 --window_spk=3 --window_spk_f=1 --window_dir=8 --window_dir_f=6 --epsilon2=0.1 --epsilon=1.1 --use_speaker='i' --multimodal_node='both' --graph_type='both' --directed_edge='avl' --single_edge=''
 ```
-
 
 ## 🚀 Quick Start
 We also provide the best model checkpoints of our EDM for each dataset. Download checkpoints:
@@ -51,8 +47,6 @@ python -u train.py --base-model 'GRU' --dropout=0.4 --lr=0.0001 --batch-size 32 
 ```
 > Checkpoint path: `./best_model_MELD.pth`
 
----
-
 ## 📊 Evaluation & Export
 
 - Accuracy, F1-score, classification report, and confusion matrix will be printed.
@@ -64,7 +58,6 @@ python -u train.py --base-model 'GRU' --dropout=0.4 --lr=0.0001 --batch-size 32 
   - `speaker_index_<DATASET>.pkl`: Speaker index per utterance
 duin ./saved_outputs
   - `utterances_<DATASET>.pkl`: A CSV file with detailed utterance-level information `dialogue_id`, `utterance_idx`, `speaker`, `label`, `pred`
----
 
 ## 📉 Experiments
 ### Ablation Study
