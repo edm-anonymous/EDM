@@ -274,6 +274,7 @@ class Model(nn.Module):
             else:
                 pass
             U = (r1 + r2 + r3 + r4)/4
+
         if len(self.modals) == 3:
             U_text_temp = r2
             U_audio_temp = U_a
@@ -366,4 +367,7 @@ class Model(nn.Module):
         features_u = simple_batch_graphify(emotions_u, seq_lengths, self.no_cuda)
         emotions_feat, spk_idx = self.graph_model(features_a, features_v, features_l, features_u, seq_lengths, qmask) 
         log_prob = F.log_softmax(self.smax_fc(emotions_feat), 1)
-        return log_prob, emotions_feat, spk_idx, emotions_u_temp
+        if len(self.modals) ==3:
+            return log_prob, emotions_feat, spk_idx, emotions_u_temp
+        else:
+            return log_prob, emotions_feat, spk_idx, None

@@ -133,8 +133,9 @@ def train_or_eval_graph_model(model, loss_function, dataloader, cuda, modals, op
                 log_prob, multimodal_emotions, spk_idx, multimodal_emotions_before = model([textf1,textf2,textf3,textf4], qmask, lengths)
         
         spk_idx_all.append(spk_idx.cpu().detach().numpy()) 
-        multimodal_emotions_all.append(multimodal_emotions.cpu().detach().numpy()) 
-        multimodal_emotions_before_all.append(multimodal_emotions_before.cpu().detach().numpy())  
+        multimodal_emotions_all.append(multimodal_emotions.cpu().detach().numpy())
+        if multimodal_emotions_before != None: 
+            multimodal_emotions_before_all.append(multimodal_emotions_before.cpu().detach().numpy())  
         label = torch.cat([label[j][:lengths[j]] for j in range(len(label))])
         loss = loss_function(log_prob, label)
         preds.append(torch.argmax(log_prob, 1).cpu().numpy())
