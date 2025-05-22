@@ -59,29 +59,29 @@ python -u train.py --base-model 'GRU' --dropout=0.4 --lr=0.0001 --batch-size 32 
 duin ./saved_outputs
   - `utterances_<DATASET>.pkl`: A CSV file with detailed utterance-level information `dialogue_id`, `utterance_idx`, `speaker`, `label`, `pred`
 
+
+
 ## 📉 Experiments
 ### Ablation Study
 Each line shows the arguments changed to disable a specific model component or modality.
 ```bash
 # Table 4 (i) w/o Early-Fusion Multimodal Node
---directed_edge=''
+--multimodal_node=''
 # Table 4 (ii) w/o EIGNN
 --graph_type='ECG'
 # Table 4 (iii) w/o ECGNN
 --graph_type='EIG'
-# Appendix Table 3 (i) Unimodal
+# Appendix Table 5 (i) Modality Combinations
 Remove --multi_modal
---modals='l' or --modals='a' or --modals='v'
-# Appendix Table 3 (ii) Bimodal
---modals='la' or --modals='lv' or --modals='av'
-# Appendix Table 3 (iii) w/o Speaker Embedding
+--modals='l' --direcred_edge='l' or --modals='a' --direcred_edge='a' or --modals='v' --direcred_edge='v'
+Do not remove --multi_modal
+--modals='la' --direcred_edge='la' or --modals='lv' --direcred_edge='lv' or --modals='av' --direcred_edge='av'
+# Appendix Table 5 (ii) w/o Speaker Embedding
 --use_speaker=''
-# Appendix Table 4 (i) Intra-Utterance Directed Edge
---directed_edge='l' or --directed_edge='a' or --directed_edge='v' or --directed_edge='la' or --directed_edge='lv' or --directed_edge='av'
-# Appendix Table 4 (ii) Intra-Utterance Undirected Multi-edge
---single_edge='intra' 
-# Appendix Table 4 (iii) Inter-Utterance Undirected Multi-edge
---single_edge='inter'
+# Appendix Table 6 (i) Intra-Utterance Directed Edge
+--directed_edge='' or --directed_edge='l' or --directed_edge='a' or --directed_edge='v' or --directed_edge='la' or --directed_edge='lv' or --directed_edge='av'
+# Appendix Table 6 (ii) Replace Undirected Multi-edge with Single-edge
+--single_edge='intra' or --single_edge='inter'
 ```
 
 ### Effect of Hyperparameter
@@ -116,7 +116,6 @@ python Inertia_MELD.py
 # Appendix Table 6: FLOP, Memory, and Inference Time
 --testing --overhead
 ``` 
-
 
 ## 🔧 Argument Highlights
 
