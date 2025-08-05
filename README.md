@@ -12,13 +12,13 @@
 The pre-extracted multimodal features (text, audio, visual) used in this project are adopted from the [M3Net](https://github.com/feiyuchen7/M3NET) project(Chen et al., CVPR 2023) and []() project(). Download multimodal features:
 - [IEMOCAP](https://drive.google.com/drive/folders/1s5S1Ku679nlVZQPEfq-6LXgoN1K6Tzmz?usp=drive_link) → Place into the `IEMOCAP_features/` folder  
 - [MELD](https://drive.google.com/drive/folders/1GfqY7WNVeCBWoFa_NSTalnaIgyyOVJuC?usp=drive_link) → Place into the `MELD_features/` folder
-- [CMU-MOSEI]() → Place into the `CMU-MOSEI_features/` foler
+- [CMU-MOSEI](https://drive.google.com/drive/folders/1_j3w21zdYvA1yBajubXnaoIhYM22kI3P?usp=drive_link) → Place into the `CMU-MOSEI_features/` foler
 
 
 Download raw datasets(Optional):
 - [IEMOCAP](https://sail.usc.edu/iemocap/)
 - [MELD](https://github.com/SenticNet/MELD)
-- [CMU-MOSEI]()
+- [CMU-MOSEI](http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/)
 
 ## 🏋️‍♀️ Training
 
