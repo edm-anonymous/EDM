@@ -146,7 +146,7 @@ python tsne_MELD.py
 | `--multimodal_node`   | Multimodal node in the model: `'EIG'`, `'ECG'`, or `'both'`. |
 | `--graph_type`        | Type of graph in the model: `'EIG'`, `'ECG'`, or `'both'`. |
 | `--directed_edge`     | Applies directed intra-utterance edges to the multimodal node for selected modalities: `'a'`, `'v'`, `'l'`. |
-| `--single_edge`       | Use only a single edge type: `'inter'` (inter-utterance) or `'intra'` (intra-utterance). |
+| `--single_edge`       | Use only a single edge type: `'intra'` (intra-utterance). |
 | `--testing`           | Run in test mode using a pre-trained model checkpoint.                      |
 | `--overhead`          | Run FLOP/memory/time analysis (only valid when `--testing` is used).        |
 ---
