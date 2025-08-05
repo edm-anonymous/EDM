@@ -43,6 +43,7 @@ We also provide the best model checkpoints of our EDM for each dataset. Download
 - [MELD](https://drive.google.com/file/d/1wy9mxnGHL1Mkt4napDzdoefe1MCQY6SL/view?usp=drive_link)
 - [CMU-MOSEI]()
   
+
 ### Inference with Pretrained Checkpoint on IEMOCAP
 ```bash
 python -u train.py --base-model 'GRU' --dropout 0.5 --lr 0.0001 --batch-size=32 --epochs=60 --multi_modal --mm_fusion_mthd='concat_DHT' --modals='avl' --Dataset='IEMOCAP' --norm BN --num_L=6 --num_K=3 --window_spk=10 --window_spk_f=-1 --window_dir=1 --window_dir_f=-1 --epsilon2=1 --epsilon=1 --use_speaker='bh' --multimodal_node='both' --graph_type='both' --directed_edge='avl' --single_edge='' --testing
@@ -57,7 +58,7 @@ python -u train.py --base-model 'GRU' --dropout=0.4 --lr=0.0001 --batch-size 32 
 
 ### Inference with Pretrained Checkpoint on CMU-MOSEI
 ```bash
-python3 -u train_MOSEI.py --base-model GRU --dropout=0.4 --lr=0.0001 --batch-size 8 --epochs=30 --multi_modal --mm_fusion_mthd=concat_DHT --modals=avl --Dataset=MOSEI --norm=BN --num_L=1 --num_K=1 --window_spk=11 --window_spk_f=1 --window_dir=1 --window_dir_f=2 --epsilon=0.1 --epsilon2=0.9 --use_speaker='' --multimodal_node='both' --graph_type='both' --directed_edge='avl' --single_edge=''
+python3 -u train.py --base-model GRU --dropout=0.4 --lr=0.0001 --batch-size 8 --epochs=30 --multi_modal --mm_fusion_mthd=concat_DHT --modals=avl --Dataset=MOSEI --norm=BN --num_L=1 --num_K=1 --window_spk=11 --window_spk_f=1 --window_dir=1 --window_dir_f=2 --epsilon=0.1 --epsilon2=0.9 --use_speaker='' --multimodal_node='both' --graph_type='both' --directed_edge='avl' --single_edge=''
 ```
 > Checkpoint path: `./best_model_MOSEI.pth`
 
@@ -90,12 +91,12 @@ Remove --multi_modal
 --modals='l' --direcred_edge='l' or --modals='a' --direcred_edge='a' or --modals='v' --direcred_edge='v'
 Do not remove --multi_modal
 --modals='la' --direcred_edge='la' or --modals='lv' --direcred_edge='lv' or --modals='av' --direcred_edge='av'
-# Appendix Table 4 (ii) w/o Speaker Embedding
+# Appendix Table 5 Effect of Speaker Embedding
 --use_speaker=''
-# Appendix Table 5 (i) Intra-Utterance Directed Edge
+# Appendix Table 6 Effect of Intra-Utterance Multi-Edges
+--single_edge='intra'
+# Appendix Table 7 Effect of Intra-Utterance Directed Edges
 --directed_edge='' or --directed_edge='l' or --directed_edge='a' or --directed_edge='v' or --directed_edge='la' or --directed_edge='lv' or --directed_edge='av'
-# Appendix Table 5 (ii) Replace Undirected Multi-edge with Single-edge
---single_edge='intra' or --single_edge='inter'
 ```
 
 ### Effect of Hyperparameter
@@ -104,30 +105,27 @@ We also evaluate the model’s sensitivity to key hyperparameters:
 # Figure 3: Number of GNN Layers
 --num_L=<int>
 --num_K=<int>
-# Appendix: Effect of Window Size
+# Appendix Figure 3: Impact of Residual Scaling εI and εC
+# For EIGNN
+--epsilon2=<float>
+# For ECGNN
+--epsilon=<float>
+# Appendix Figure 4: Effect of Window Size
 # For EIGNN
 --window_spk=<int>
 --window_spk_f=<int>
 # For ECGNN
 --window_dir=<int>
 --window_dir_f=<int>
-# Appendix Figure 2: Effect of εI and εC
-# For EIGNN
---epsilon2=<float>
-# For ECGNN
---epsilon=<float>
 ```
 
 ### Additional Analyses after Train
 ```bash
 # Figure 2: t-SNE visualization on IEMOCAP
 python tsne_IEMOCAP.py
-# Appendix Figure 3: t-SNE visualization on MELD
+# Appendix Figure 5: t-SNE visualization on MELD
 python tsne_MELD.py
-# Appendix: Effect of modeling emotional inertia
-python Inertia_IEMOCAP.py
-python Inertia_MELD.py
-# Appendix Table 7, 8: FLOP, Memory, and Inference Time
+# Table 5: Memory, and Inference Time Overhead
 --testing --overhead
 ``` 
 
