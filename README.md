@@ -9,7 +9,7 @@
 - fvcore, thop, torchinfo
 
 ## 📁 Datasets
-The pre-extracted multimodal features (text, audio, visual) used in this project are adopted from the [M3Net](https://github.com/feiyuchen7/M3NET) project(Chen et al., CVPR 2023) and []() project(). Download multimodal features:
+The pre-extracted multimodal features (text, audio, visual) used in this project are adopted from the [M3Net](https://github.com/feiyuchen7/M3NET) project(Chen et al., CVPR 2023) and [GraphSmile](https://github.com/lijfrank/GraphSmile) project(Li, Wang, and Zeng, 2025). Download multimodal features:
 - [IEMOCAP](https://drive.google.com/drive/folders/1s5S1Ku679nlVZQPEfq-6LXgoN1K6Tzmz?usp=drive_link) → Place into the `IEMOCAP_features/` folder  
 - [MELD](https://drive.google.com/drive/folders/1GfqY7WNVeCBWoFa_NSTalnaIgyyOVJuC?usp=drive_link) → Place into the `MELD_features/` folder
 - [CMU-MOSEI](https://drive.google.com/drive/folders/1_j3w21zdYvA1yBajubXnaoIhYM22kI3P?usp=drive_link) → Place into the `CMU-MOSEI_features/` foler
@@ -41,7 +41,6 @@ python3 -u train_MOSEI.py --base-model GRU --dropout=0.4 --lr=0.0001 --batch-siz
 We also provide the best model checkpoints of our EDM for each dataset. Download checkpoints:
 - [IEMOCAP](https://drive.google.com/file/d/1RGmLqOcXkLHCv8ibTHVYSHZa9aFoTH64/view?usp=drive_link)  
 - [MELD](https://drive.google.com/file/d/1wy9mxnGHL1Mkt4napDzdoefe1MCQY6SL/view?usp=drive_link)
-- [CMU-MOSEI]()
   
 
 ### Inference with Pretrained Checkpoint on IEMOCAP
