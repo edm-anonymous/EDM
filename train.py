@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from dataloader import IEMOCAPDataset, MELDDataset
+from dataloader import IEMOCAPDataset, MELDDataset, CMUMOSEIDataset7
 from model import Model, FocalLoss
 from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, classification_report
 from fvcore.nn import FlopCountAnalysis, flop_count_table 
@@ -89,6 +89,54 @@ def get_IEMOCAP_loaders(batch_size=32, valid=0.1, num_workers=0, pin_memory=Fals
 
     return train_loader, valid_loader, test_loader
 
+def get_IEMOCAP_4_loaders(batch_size=32, valid=0.1, num_workers=0, pin_memory=False):
+    trainset = IEMOCAPDataset(train=True, use_4way=True)
+    train_sampler, valid_sampler = get_train_valid_sampler(trainset, valid)
+
+    train_loader = DataLoader(trainset,
+                              batch_size=batch_size,
+                              sampler=train_sampler,
+                              collate_fn=trainset.collate_fn,
+                              num_workers=num_workers,
+                              pin_memory=pin_memory,
+                              worker_init_fn=_init_fn)
+
+    valid_loader = DataLoader(trainset,
+                              batch_size=batch_size,
+                              sampler=valid_sampler,
+                              collate_fn=trainset.collate_fn,
+                              num_workers=num_workers,
+                              pin_memory=pin_memory)
+
+    testset = IEMOCAPDataset(train=False, use_4way=True)
+    test_loader = DataLoader(testset,
+                             batch_size=batch_size,
+                             collate_fn=testset.collate_fn,
+                             num_workers=num_workers,
+                             pin_memory=pin_memory,
+                             worker_init_fn=_init_fn)
+
+    return train_loader, valid_loader, test_loader
+
+def get_MOSEI_loaders(batch_size=32, valid=0.1, num_workers=0, pin_memory=False):
+    trainset = CMUMOSEIDataset7(train=True)
+    testset = CMUMOSEIDataset7(train=False)
+    train_sampler, valid_sampler = get_train_valid_sampler(trainset, valid, 'MOSEI')
+
+    train_loader = DataLoader(trainset, 
+                              batch_size=batch_size, 
+                              sampler=train_sampler, 
+                              collate_fn=trainset.collate_fn)
+    valid_loader = DataLoader(trainset, 
+                              batch_size=batch_size, 
+                              sampler=valid_sampler, 
+                              collate_fn=trainset.collate_fn)
+    test_loader  = DataLoader(testset, 
+                               batch_size=batch_size, 
+                               collate_fn=testset.collate_fn)
+
+    return train_loader, valid_loader, test_loader
+
 def train_or_eval_graph_model(model, loss_function, dataloader, cuda, modals, optimizer=None, train=False): 
     losses, preds, labels = [], [], []
     multimodal_emotions_all = []
@@ -111,8 +159,18 @@ def train_or_eval_graph_model(model, loss_function, dataloader, cuda, modals, op
         if train:
             optimizer.zero_grad()
 
-        textf1, textf2, textf3, textf4, visuf, acouf, qmask, umask, label = [d.cuda() for d in data[:-1]] if cuda else data[:-1]
-        lengths = [(umask[j] == 1).nonzero(as_tuple=False).tolist()[-1][0] + 1 for j in range(len(umask))]
+        if args.Dataset == "MOSEI":
+            textf1, textf2, textf3, textf4, visuf, acouf, qmask, umask, label, _ = [d.cuda() for d in data[:-1]] if cuda else data[:-1]
+
+        else:
+            textf1, textf2, textf3, textf4, visuf, acouf, qmask, umask, label = [d.cuda() for d in data[:-1]] if cuda else data[:-1]
+        lengths = []
+        if args.Dataset == "MOSEI":
+            for j in range(umask.shape[1]):
+                valid = (umask[:, j] == 1).nonzero(as_tuple=False)
+                lengths.append(valid[-1][0].item() + 1 if len(valid) > 0 else 1)
+        else:
+            lengths = [(umask[j] == 1).nonzero(as_tuple=False).tolist()[-1][0] + 1 for j in range(len(umask))]
         # Supplementary - Ablation: (i, ii) Effect of Modality Combinations
         if args.multi_modal:
             if len(modals) == 3:
@@ -218,7 +276,7 @@ if __name__ == '__main__':
                         help='If set, applies LSTM encoding to audio and visual features before fusion.')
 
     parser.add_argument('--Dataset', default='IEMOCAP',
-                        help="Dataset to train and evaluate the model. Options: 'IEMOCAP' or 'MELD'.")
+                        help="Dataset to train and evaluate the model. Options: 'IEMOCAP' or 'IEMOCAP_4' or 'MELD' or 'MOSEI'.")
 
     parser.add_argument('--use_speaker', default='bcd',
                         help="Type of speaker embedding in the model")
@@ -274,16 +332,20 @@ if __name__ == '__main__':
     batch_size = args.batch_size
     modals = args.modals
 
-    feat2dim = {'IS10':1582,'3DCNN':512,'textCNN':100,'bert':768,'denseface':342,'MELD_text':600,'MELD_audio':300}
-    if args.Dataset=='IEMOCAP':
+    feat2dim = {'IS10':1582,'3DCNN':512,'textCNN':100,'bert':768,'denseface':342,'MELD_text':600,'MELD_audio':300, 'MOSEI_text': 1024, 'MOSEI_audio': 384, 'MOSEI_visual': 35}
+    if args.Dataset=='IEMOCAP' or args.Dataset=='IEMOCAP_4':
         D_audio = feat2dim['IS10']  
     elif args.Dataset=='MELD': 
         D_audio = feat2dim['MELD_audio']
-    
-    if args.Dataset=='IEMOCAP' or args.Dataset=='MELD':
-        D_visual = feat2dim['denseface']
+    elif args.Dataset=='MOSEI':
+        D_audio = feat2dim['MOSEI_audio']
 
-    if args.Dataset=='IEMOCAP' or args.Dataset=='MELD':
+    if args.Dataset=='IEMOCAP' or args.Dataset=='MELD' or args.Dataset=='IEMOCAP_4':
+        D_visual = feat2dim['denseface']
+    elif args.Dataset=='MOSEI':
+        D_visual = feat2dim['MOSEI_visual']
+
+    if args.Dataset=='IEMOCAP' or args.Dataset=='MELD' or args.Dataset=='IEMOCAP_4' or args.Dataset=='MOSEI':
         D_text = 1024
 
     if args.multi_modal:
@@ -312,12 +374,18 @@ if __name__ == '__main__':
     D_g = 512 if args.Dataset=='IEMOCAP' else 1024
     D_e = 100
     graph_h = 512
-    n_speakers = 9 if args.Dataset=='MELD' else 2
+    n_speakers = 2 
+    if args.Dataset=='MELD':
+        n_speakers = 9
+    elif args.Dataset=='MOSEI':
+        n_speakers = 1
     
-    if args.Dataset =='MELD':
+    if args.Dataset =='MELD' or args.Dataset=='MOSEI':
         n_classes  = 7
     elif args.Dataset =='IEMOCAP':
         n_classes = 6
+    elif args.Dataset =='IEMOCAP_4':
+        n_classes = 4
     else:
         n_classes = 1
 
@@ -366,9 +434,18 @@ if __name__ == '__main__':
                                         1/0.127711,
                                         1/0.252668])
         loss_function  = nn.NLLLoss(loss_weights.cuda() if cuda else loss_weights)
-
+    elif args.Dataset == 'IEMOCAP_4':
+        loss_weights = torch.FloatTensor([
+            1 / (1708 / 4543),  
+            1 / (1103 / 4543),  
+            1 / (1084 / 4543),  
+            1 / (648 / 4543),   
+        ])
+        loss_function  = nn.NLLLoss(loss_weights.cuda() if cuda else loss_weights)
     elif args.Dataset == 'MELD':
         loss_function = FocalLoss()
+    elif args.Dataset == 'MOSEI':
+        loss_function = nn.NLLLoss()
         
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.l2)
@@ -382,7 +459,16 @@ if __name__ == '__main__':
     elif args.Dataset == 'IEMOCAP':
         train_loader, valid_loader, test_loader = get_IEMOCAP_loaders(valid=0.0,
                                                                       batch_size=batch_size,
-                                                                      num_workers=2)                                                       
+                                                                      num_workers=2)    
+    elif args.Dataset == 'IEMOCAP_4':
+        train_loader, valid_loader, test_loader = get_IEMOCAP_4_loaders(valid=0.0,
+                                                                      batch_size=batch_size,
+                                                                      num_workers=2)                                                                                                               
+
+    elif args.Dataset == 'MOSEI':
+        train_loader, valid_loader, test_loader = get_MOSEI_loaders(valid=0.0,
+                                                                    batch_size=batch_size,
+                                                                    num_workers=2)                                                   
     else:
         print("There is no such dataset")
 
@@ -430,6 +516,10 @@ if __name__ == '__main__':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if args.Dataset == 'IEMOCAP':
             checkpoint_path='./best_model_IEMOCAP.pth'
+        elif args.Dataset == 'IEMOCAP_4':
+            checkpoint_path='./best_model_IEMOCAP_4.pth'
+        elif args.Dataset == 'MOSEI':
+            checkpoint_path='./best_model_MOSEI.pth'
         else:
            checkpoint_path='./best_model_MELD.pth' 
         model.load_state_dict(torch.load(checkpoint_path, map_location=device))
@@ -454,6 +544,24 @@ if __name__ == '__main__':
                 pickle.dump(test_label, f)
             with open(os.path.join(save_dir, "speaker_index_MELD.pkl"), "wb") as f:
                 pickle.dump(spk_idx, f)
+        elif args.Dataset == 'IEMOCAP_4':
+            with open(os.path.join(save_dir, "multimodal_emotions_before_IEMOCAP_4.pkl"), "wb") as f:
+                pickle.dump(multimodal_emotions_before_train, f)
+            with open(os.path.join(save_dir, "multimodal_emotions_after_IEMOCAP_4.pkl"), "wb") as f:
+                pickle.dump(multimodal_emotions_after_train, f)
+            with open(os.path.join(save_dir, "emotion_labels_IEMOCAP_4.pkl"), "wb") as f:
+                pickle.dump(test_label, f)
+            with open(os.path.join(save_dir, "speaker_index_IEMOCAP_4.pkl"), "wb") as f:
+                pickle.dump(spk_idx, f)
+        elif args.Dataset == 'MOSEI':
+            with open(os.path.join(save_dir, "multimodal_emotions_before_MOSEI.pkl"), "wb") as f:
+                pickle.dump(multimodal_emotions_before_train, f)
+            with open(os.path.join(save_dir, "multimodal_emotions_after_MOSEI.pkl"), "wb") as f:
+                pickle.dump(multimodal_emotions_after_train, f)
+            with open(os.path.join(save_dir, "emotion_labels_MOSEI.pkl"), "wb") as f:
+                pickle.dump(test_label, f)
+            with open(os.path.join(save_dir, "speaker_index_MOSEI.pkl"), "wb") as f:
+                pickle.dump(spk_idx, f)
         else:
             with open(os.path.join(save_dir, "multimodal_emotions_before_IEMOCAP.pkl"), "wb") as f:
                 pickle.dump(multimodal_emotions_before_train, f)
@@ -467,8 +575,17 @@ if __name__ == '__main__':
         qmask_all = []
         utt_lengths = []
         for data in test_loader:
-            textf1, textf2, textf3, textf4, visuf, acouf, qmask, umask, label = [d.cuda() for d in data[:-1]] if cuda else data[:-1]
-            lengths = [(umask[j] == 1).nonzero(as_tuple=False).tolist()[-1][0] + 1 for j in range(len(umask))]
+            if args.Dataset == "MOSEI":
+                textf1, textf2, textf3, textf4, visuf, acouf, qmask, umask, label, _ = [d.cuda() for d in data[:-1]] if cuda else data[:-1]
+            else:
+                textf1, textf2, textf3, textf4, visuf, acouf, qmask, umask, label = [d.cuda() for d in data[:-1]] if cuda else data[:-1]
+            lengths = []
+            if args.Dataset == "MOSEI":
+                for j in range(umask.shape[1]):
+                    valid = (umask[:, j] == 1).nonzero(as_tuple=False)
+                    lengths.append(valid[-1][0].item() + 1 if len(valid) > 0 else 1)
+            else:
+                lengths = [(umask[j] == 1).nonzero(as_tuple=False).tolist()[-1][0] + 1 for j in range(len(umask))]
             qmask_all.extend(torch.cat([qmask[:x,i,:] for i,x in enumerate(lengths)],dim=0))
             utt_lengths.extend(lengths)
 
@@ -492,8 +609,12 @@ if __name__ == '__main__':
         os.makedirs("saved_outputs", exist_ok=True)
         if args.Dataset == 'MELD':
             df.to_csv("saved_outputs/utterances_MELD.csv", index=False)
-        else:
+        elif args.Dataset == 'IEMOCAP':
             df.to_csv("saved_outputs/utterances_IEMOCAP.csv", index=False)
+        elif args.Dataset=='IEMOCAP_4':
+            df.to_csv("saved_outputs/utterances_IEMOCAP_4.csv", index=False)
+        elif args.Dataset=='MOSEI':
+            df.to_csv("saved_outputs/utterances_MOSEI.csv", index=False)
     
 
     for e in range(n_epochs):
@@ -516,6 +637,8 @@ if __name__ == '__main__':
             elif args.Dataset =='MELD' and test_fscore >= 67.4:
                 torch.save(model.state_dict(), "./best_model_MELD.pth")
                 print('test_fscore:', test_fscore)
+            if args.Dataset == 'MOSEI' and test_fscore >= 43.3:
+                torch.save(model.state_dict(), "./best_model_MOSEI.pth")
        
         print('epoch: {}, train_loss: {}, train_acc: {}, train_fscore: {}, test_loss: {}, test_acc: {}, test_fscore: {}, time: {} sec'.\
                 format(e+1, train_loss, train_acc, train_fscore, test_loss, test_acc, test_fscore, round(time.time()-start_time, 2)))
